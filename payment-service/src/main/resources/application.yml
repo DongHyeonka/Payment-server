@@ -1,0 +1,16 @@
+server:
+    port: 1002
+
+spring:
+    main:
+        web-application-type: servlet
+
+    profiles:
+        default: local
+    
+    application:
+        name: payment-service
+    
+    config:
+        import:
+            - security/application-db.yml
