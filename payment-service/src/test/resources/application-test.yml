@@ -1,4 +1,22 @@
 spring:
+    security:
+        oauth2:
+            client:
+                registration:
+                    payment-service:
+                        provider: payment
+                        client-id: test-service-client
+                        client-secret: test-secret
+                        authorization-grant-type: client_credentials
+                        scope: api.internal, account:read
+                provider:
+                    payment:
+                        token-uri: test-uri
+            resourceserver:
+                jwt:
+                    issuer-uri: http://test-issuer
+                    jwk-set-uri: http://test-issuer/jwks
+
     h2:
         console:
             enabled: true
@@ -15,11 +33,11 @@ spring:
             hibernate:
                 format:
                     sql: true
-            highlight:
-                sql: true
-            hbm2ddl:
-                auto: create
-            dialect: org.hibernate.dialect.PostgreSQLDialect
+                highlight:
+                    sql: true
+                hbm2ddl:
+                    auto: create
+                dialect: org.hibernate.dialect.PostgreSQLDialect
         open-in-view: false
         show-sql: true
 
