@@ -1,5 +1,6 @@
 package com.synapse.payment_service.domain;
 
+import java.math.BigDecimal;
 import java.time.ZonedDateTime;
 
 import com.synapse.payment_service.common.BaseEntity;
@@ -24,11 +25,14 @@ public class Order extends BaseEntity {
     @JoinColumn(name = "subscription_id", nullable = false)
     private Subscription subscription;
 
-    @Column(nullable = false, unique = true)
+    @Column(unique = true)
     private String iamportUid; // 아임포트에서 사용하는 결제 건별 고유 ID, 환불시 사용
 
     @Column(nullable = false, unique = true)
     private String merchantUid; // 주문별 고유 ID. 중복 결제 방지
+
+    @Column(nullable = false)
+    private BigDecimal amount;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -37,10 +41,11 @@ public class Order extends BaseEntity {
     private ZonedDateTime paidAt;
 
     @Builder
-    public Order(Subscription subscription, String iamportUid, String merchantUid, PaymentStatus status, ZonedDateTime paidAt) {
+    public Order(Subscription subscription, String iamportUid, String merchantUid, BigDecimal amount, PaymentStatus status, ZonedDateTime paidAt) {
         this.subscription = subscription;
         this.iamportUid = iamportUid;
         this.merchantUid = merchantUid;
+        this.amount = amount;
         this.status = status;
         this.paidAt = paidAt;
     }

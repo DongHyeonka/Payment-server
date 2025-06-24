@@ -31,6 +31,8 @@ dependencies {
 	runtimeOnly 'org.postgresql:postgresql'
 	// OAuth2 Resource Server
 	implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
+	// WebFlux
+	implementation 'org.springframework.boot:spring-boot-starter-webflux'
 	// Lombok
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
