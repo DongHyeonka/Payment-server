@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import io.portone.sdk.server.PortOneClient;
+import io.portone.sdk.server.webhook.WebhookVerifier;
 import lombok.RequiredArgsConstructor;
 
 @Configuration
@@ -15,7 +16,11 @@ public class PortOneClientConfig {
 
     @Bean
     public PortOneClient portOneClient() {
-        // PortOneClient는 스레드에 안전하며 애플리케이션 전반에 걸쳐 재사용 가능합니다.
         return new PortOneClient(properties.apiSecret(), properties.baseUrl(), properties.midKey());
+    }
+
+    @Bean
+    public WebhookVerifier webhookVerifier() {
+        return new WebhookVerifier(properties.webhookSecret());
     }
 }

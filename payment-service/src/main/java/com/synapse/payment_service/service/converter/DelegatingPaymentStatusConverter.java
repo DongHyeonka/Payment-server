@@ -1,22 +1,45 @@
 package com.synapse.payment_service.service.converter;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
 import com.synapse.payment_service.domain.Order;
+import com.synapse.payment_service.exception.ExceptionCode;
+import com.synapse.payment_service.exception.PaymentVerificationException;
+import com.synapse.payment_service.service.converter.impl.CancelledPaymentConverter;
+import com.synapse.payment_service.service.converter.impl.FailedPaymentConverter;
+import com.synapse.payment_service.service.converter.impl.PaidPaymentConverter;
+import com.synapse.payment_service.service.converter.impl.PartialCancelledPaymentConverter;
+import com.synapse.payment_service.service.converter.impl.PayPendingPaymentConverter;
+import com.synapse.payment_service.service.converter.impl.ReadyPaymentConverter;
+import com.synapse.payment_service.service.converter.impl.VirtualAccountIssuedPaymentConverter;
 
 import io.portone.sdk.server.payment.Payment;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Component
-@RequiredArgsConstructor
 public class DelegatingPaymentStatusConverter implements PaymentStatusConverter {
 
     private final List<PaymentStatusConverter> converters;
+
+    public DelegatingPaymentStatusConverter() {
+        List<PaymentStatusConverter> paymentConverters = Arrays.asList(
+            new PaidPaymentConverter(),
+            new CancelledPaymentConverter(),
+            new PartialCancelledPaymentConverter(),
+            new PayPendingPaymentConverter(),
+            new ReadyPaymentConverter(),
+            new VirtualAccountIssuedPaymentConverter(),
+            new FailedPaymentConverter()
+        );
+        this.converters = Collections.unmodifiableList(new LinkedList<>(paymentConverters));
+    }
 
     @Override
     public boolean canHandle(Class<? extends Payment> paymentStatus) {
@@ -39,6 +62,6 @@ public class DelegatingPaymentStatusConverter implements PaymentStatusConverter 
         
         // 처리할 수 있는 컨버터가 없는 경우
         log.error("지원하지 않는 결제 상태: {}", payment.getClass());
-        throw new IllegalArgumentException("지원하지 않는 결제 상태: " + payment.getClass());
+        throw new PaymentVerificationException(ExceptionCode.UNSUPPORTED_PAYMENT_STATUS);
     }
-} 
+}

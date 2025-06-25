@@ -50,10 +50,10 @@ public class Subscription extends BaseEntity {
         this.expiresAt = expiresAt;
         this.status = status;
     }
-
-    public void activate() {
+    
+    public void activate(SubscriptionTier newTier) {
         this.status = SubscriptionStatus.ACTIVE;
-        // 만료일 연장 로직 추후 추가
+        this.tier = newTier;
     }
 
     public void deactivate() {

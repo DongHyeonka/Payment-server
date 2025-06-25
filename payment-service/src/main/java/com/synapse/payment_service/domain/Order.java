@@ -26,10 +26,10 @@ public class Order extends BaseEntity {
     private Subscription subscription;
 
     @Column(unique = true)
-    private String iamportUid; // 아임포트에서 사용하는 결제 건별 고유 ID, 환불시 사용
+    private String iamPortTransactionId; // 아임포트에서 사용하는 결제 건별 고유 ID, 환불시 사용
 
     @Column(nullable = false, unique = true)
-    private String merchantUid; // 주문별 고유 ID. 중복 결제 방지
+    private String paymentId; // 주문별 고유 ID. 중복 결제 방지
 
     @Column(nullable = false)
     private BigDecimal amount;
@@ -41,10 +41,10 @@ public class Order extends BaseEntity {
     private ZonedDateTime paidAt;
 
     @Builder
-    public Order(Subscription subscription, String iamportUid, String merchantUid, BigDecimal amount, PaymentStatus status, ZonedDateTime paidAt) {
+    public Order(Subscription subscription, String iamPortTransactionId, String paymentId, BigDecimal amount, PaymentStatus status, ZonedDateTime paidAt) {
         this.subscription = subscription;
-        this.iamportUid = iamportUid;
-        this.merchantUid = merchantUid;
+        this.iamPortTransactionId = iamPortTransactionId;
+        this.paymentId = paymentId;
         this.amount = amount;
         this.status = status;
         this.paidAt = paidAt;
@@ -54,12 +54,7 @@ public class Order extends BaseEntity {
         this.status = status;
     }
 
-    public void updatePaymentInfo(String cardName, String cardNumber, ZonedDateTime paidAt) {
-        this.paidAt = paidAt;
-        // 카드 정보는 별도 테이블로 관리하거나 추후 추가 필요
-    }
-
-    public void updateIamportUid(String iamportUid) {
-        this.iamportUid = iamportUid;
+    public void updateIamPortTransactionId(String iamPortTransactionId) {
+        this.iamPortTransactionId = iamPortTransactionId;
     }
 }

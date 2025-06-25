@@ -1,6 +1,5 @@
 package com.synapse.payment_service.service.converter.impl;
 
-import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.synapse.payment_service.domain.Order;
@@ -12,7 +11,6 @@ import io.portone.sdk.server.payment.Payment;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@Component
 public class FailedPaymentConverter implements PaymentStatusConverter {
 
     @Override

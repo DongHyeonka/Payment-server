@@ -6,7 +6,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public record PortOneClientProperties(
     String apiSecret,
     String baseUrl,
-    String midKey
+    String midKey,
+    String webhookSecret
 ) {
     
 }

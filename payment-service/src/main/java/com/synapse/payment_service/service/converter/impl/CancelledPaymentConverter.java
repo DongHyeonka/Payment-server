@@ -1,6 +1,5 @@
 package com.synapse.payment_service.service.converter.impl;
 
-import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.synapse.payment_service.domain.Order;
@@ -12,7 +11,6 @@ import io.portone.sdk.server.payment.Payment;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@Component
 public class CancelledPaymentConverter implements PaymentStatusConverter {
 
     @Override
@@ -23,7 +21,7 @@ public class CancelledPaymentConverter implements PaymentStatusConverter {
     @Override
     @Transactional
     public void processPayment(Order order, Payment payment) {
-        log.info("결제 취소 처리 시작. merchantUid={}", order.getMerchantUid());
+        log.info("결제 취소 처리 시작. paymentId={}", order.getPaymentId());
         
         // 주문 상태를 취소로 업데이트
         order.updateStatus(PaymentStatus.CANCELLED);
@@ -31,6 +29,6 @@ public class CancelledPaymentConverter implements PaymentStatusConverter {
         // 구독 비활성화
         order.getSubscription().deactivate();
         
-        log.info("결제 취소 처리 완료. merchantUid={}", order.getMerchantUid());
+        log.info("결제 취소 처리 완료. paymentId={}", order.getPaymentId());
     }
 } 

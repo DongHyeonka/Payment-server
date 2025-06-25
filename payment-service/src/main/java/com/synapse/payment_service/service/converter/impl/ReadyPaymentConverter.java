@@ -1,6 +1,5 @@
 package com.synapse.payment_service.service.converter.impl;
 
-import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.synapse.payment_service.domain.Order;
@@ -12,7 +11,6 @@ import io.portone.sdk.server.payment.ReadyPayment;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@Component
 public class ReadyPaymentConverter implements PaymentStatusConverter {
 
     @Override
@@ -23,11 +21,11 @@ public class ReadyPaymentConverter implements PaymentStatusConverter {
     @Override
     @Transactional
     public void processPayment(Order order, Payment payment) {
-        log.info("결제 준비 상태 처리 시작. merchantUid={}", order.getMerchantUid());
+        log.info("결제 준비 상태 처리 시작. paymentId={}", order.getPaymentId());
         
         // 주문 상태를 준비로 업데이트
         order.updateStatus(PaymentStatus.READY);
         
-        log.info("결제 준비 상태 처리 완료. merchantUid={}", order.getMerchantUid());
+        log.info("결제 준비 상태 처리 완료. paymentId={}", order.getPaymentId());
     }
 } 

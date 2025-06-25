@@ -19,8 +19,6 @@ repositories {
 }
 
 dependencies {
-	// Iam port
-	implementation 'com.github.iamport:iamport-rest-client-java:0.2.23'
 	// PortOne
 	implementation 'io.portone:server-sdk:0.19.0'
 	// Security

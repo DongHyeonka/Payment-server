@@ -35,12 +35,14 @@ public class ResourceServerConfig {
             .formLogin(form -> form.disable())
             .httpBasic(basic -> basic.disable())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .securityMatcher("/api/internal/**")
             .authorizeHttpRequests(authorize -> authorize
-                .anyRequest().access(AuthorizationManagers.allOf(
+                .requestMatchers("/api/webhooks/**").permitAll()  // 웹훅은 인증 없이 허용
+                .requestMatchers("/api/payments/**").authenticated()  // 결제 API는 인증 필요
+                .requestMatchers("/api/internal/**").access(AuthorizationManagers.allOf(
                     AuthorityAuthorizationManager.hasAuthority("SCOPE_api.internal"),
                     AuthorityAuthorizationManager.hasAuthority("SCOPE_account:read")
                 ))
+                .anyRequest().authenticated()
             )
             .oauth2ResourceServer(oauth2 -> oauth2.jwt(withDefaults()))
             .addFilterBefore(memberAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
