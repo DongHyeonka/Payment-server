@@ -49,4 +49,17 @@ public class Order extends BaseEntity {
         this.status = status;
         this.paidAt = paidAt;
     }
+
+    public void updateStatus(PaymentStatus status) {
+        this.status = status;
+    }
+
+    public void updatePaymentInfo(String cardName, String cardNumber, ZonedDateTime paidAt) {
+        this.paidAt = paidAt;
+        // 카드 정보는 별도 테이블로 관리하거나 추후 추가 필요
+    }
+
+    public void updateIamportUid(String iamportUid) {
+        this.iamportUid = iamportUid;
+    }
 }

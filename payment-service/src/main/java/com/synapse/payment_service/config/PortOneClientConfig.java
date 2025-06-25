@@ -3,10 +3,8 @@ package com.synapse.payment_service.config;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.web.reactive.function.client.WebClient;
 
+import io.portone.sdk.server.PortOneClient;
 import lombok.RequiredArgsConstructor;
 
 @Configuration
@@ -16,10 +14,8 @@ public class PortOneClientConfig {
     private final PortOneClientProperties properties;
 
     @Bean
-    public WebClient portOneWebClient() {
-        return WebClient.builder()
-                .baseUrl(properties.baseUrl())
-                .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .build();
+    public PortOneClient portOneClient() {
+        // PortOneClient는 스레드에 안전하며 애플리케이션 전반에 걸쳐 재사용 가능합니다.
+        return new PortOneClient(properties.apiSecret(), properties.baseUrl(), properties.midKey());
     }
 }

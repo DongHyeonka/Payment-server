@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.synapse.payment_service.dto.request.PaymentRequestDto;
+import com.synapse.payment_service.dto.request.PaymentVerificationRequest;
 import com.synapse.payment_service.dto.response.PaymentPreparationResponse;
 import com.synapse.payment_service.service.PaymentService;
 
@@ -33,6 +34,17 @@ public class PaymentController {
     ) {
         PaymentPreparationResponse response = paymentService.preparePayment(memberId, request);
         return ResponseEntity.ok().body(response);
+    }
+
+    /**
+     * 아임포트에서 결제 완료 후 호출되는 메서드로 실제로 결제가 되었는지 확인하는 API 입니다.
+     * @param request
+     * @return
+     */
+    @PostMapping("/verify")
+    public ResponseEntity<Void> verifyPayment(@RequestBody @Valid PaymentVerificationRequest request) {
+        paymentService.verifyAndProcess(request);
+        return ResponseEntity.ok().build();
     }
     
 }

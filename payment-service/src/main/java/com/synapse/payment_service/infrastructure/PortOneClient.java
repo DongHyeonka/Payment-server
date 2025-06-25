@@ -4,8 +4,8 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import com.siot.IamportRestClient.response.IamportResponse;
 import com.synapse.payment_service.config.PortOneClientProperties;
+import com.synapse.payment_service.dto.IamportResponse;
 import com.synapse.payment_service.dto.PaymentData;
 
 @Component
