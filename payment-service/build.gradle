@@ -19,8 +19,8 @@ repositories {
 }
 
 dependencies {
-	// Iam port
-	implementation 'com.github.iamport:iamport-rest-client-java:0.2.23'
+	// PortOne
+	implementation 'io.portone:server-sdk:0.19.0'
 	// Security
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 	// Web
@@ -31,6 +31,8 @@ dependencies {
 	runtimeOnly 'org.postgresql:postgresql'
 	// OAuth2 Resource Server
 	implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
+	// WebFlux
+	implementation 'org.springframework.boot:spring-boot-starter-webflux'
 	// Lombok
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'

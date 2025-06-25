@@ -15,3 +15,4 @@ spring:
         import:
             - security/application-db.yml
             - security/application-oauth2.yml
+            - security/application-iamport.yml

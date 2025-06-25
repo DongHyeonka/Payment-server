@@ -18,6 +18,12 @@ spring:
     open-in-view: false
     show-sql: true
 
+iamport:
+  api-secret: ${local-iamport.api-secret}
+  base-url: https://api.portone.io
+  mid-key: ${local-iamport.mid-key}
+  webhook-secret: ${local-iamport.webhook-secret}
+
 logging:
   level:
     org:

@@ -50,4 +50,13 @@ public class Subscription extends BaseEntity {
         this.expiresAt = expiresAt;
         this.status = status;
     }
+    
+    public void activate(SubscriptionTier newTier) {
+        this.status = SubscriptionStatus.ACTIVE;
+        this.tier = newTier;
+    }
+
+    public void deactivate() {
+        this.status = SubscriptionStatus.CANCELED;
+    }
 }

@@ -15,11 +15,13 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.synapse.payment_service.controller.test.InternalApiController;
+import io.portone.sdk.server.PortOneClient;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -30,6 +32,9 @@ public class ResourceServerIntegrationTest {
     
     @Autowired
     private MockMvc mockMvc;
+    
+    @MockitoBean
+    private PortOneClient portOneClient;
 
     @Test
     @DisplayName("리소스 접근 성공: 유효한 JWT와 올바른 scope으로 보호된 API 호출 시 200 OK를 응답한다")
