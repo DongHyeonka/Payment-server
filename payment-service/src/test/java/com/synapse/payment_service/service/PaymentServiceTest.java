@@ -120,7 +120,7 @@ public class PaymentServiceTest {
         doAnswer(invocation -> {
             Order order = invocation.getArgument(0);
             order.updateStatus(PaymentStatus.PAID);
-            order.getSubscription().activate(SubscriptionTier.PRO);
+            order.getSubscription().renewSubscription(SubscriptionTier.PRO);
             return null;
         }).when(paymentStatusConverter).processPayment(any(Order.class), any(Payment.class));
 

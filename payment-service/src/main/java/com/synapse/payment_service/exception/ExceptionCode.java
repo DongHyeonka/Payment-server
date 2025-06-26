@@ -17,6 +17,7 @@ public enum ExceptionCode {
     
     SUBSCRIPTION_NOT_FOUND(NOT_FOUND, "P002", "구독 정보를 찾을 수 없습니다"),
     ORDER_NOT_FOUND(NOT_FOUND, "P003", "주문 정보를 찾을 수 없습니다"),
+    BILLING_KEY_NOT_FOUND(NOT_FOUND, "P008", "빌링키 정보를 찾을 수 없습니다"),
     
     PAYMENT_VERIFICATION_FAILED(BAD_REQUEST, "P004", "존재하지 않는 거래입니다"),
     PAYMENT_NOT_RECOGNIZED(INTERNAL_SERVER_ERROR, "P005", "결제 정보를 인식할 수 없습니다"),

@@ -33,11 +33,11 @@ spring:
             hibernate:
                 format:
                     sql: true
-                highlight:
-                    sql: true
-                hbm2ddl:
-                    auto: create
-                dialect: org.hibernate.dialect.PostgreSQLDialect
+            highlight:
+                sql: true
+            hbm2ddl:
+                auto: create
+            dialect: org.hibernate.dialect.PostgreSQLDialect
         open-in-view: false
         show-sql: true
 

@@ -11,6 +11,7 @@ import com.synapse.payment_service.domain.Order;
 import com.synapse.payment_service.domain.Subscription;
 import com.synapse.payment_service.domain.enums.PaymentStatus;
 import com.synapse.payment_service.domain.enums.SubscriptionTier;
+import com.synapse.payment_service.dto.request.CancelSubscriptionRequest;
 import com.synapse.payment_service.dto.request.PaymentRequestDto;
 import com.synapse.payment_service.dto.request.PaymentVerificationRequest;
 import com.synapse.payment_service.dto.request.PaymentWebhookRequest;
@@ -23,6 +24,7 @@ import com.synapse.payment_service.repository.SubscriptionRepository;
 import com.synapse.payment_service.service.converter.PaymentStatusConverter;
 
 import io.portone.sdk.server.PortOneClient;
+import io.portone.sdk.server.payment.CancelPaymentResponse;
 import io.portone.sdk.server.payment.Payment;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -72,7 +74,24 @@ public class PaymentService {
     @Transactional
     public void verifyAndProcessWebhook(String requestBody) throws IOException {
         PaymentWebhookRequest webhookRequest = PaymentWebhookRequest.from(requestBody, objectMapper);
-        processPaymentVerification(webhookRequest.paymentId(), webhookRequest.transactionId());
+        if(webhookRequest.isTransactionWebhook()) {
+            String paymentId = webhookRequest.getPaymentId();
+            String transactionId = webhookRequest.getTransactionId();
+            processPaymentVerification(paymentId, transactionId);
+        }
+        if(webhookRequest.isBillingKeyWebhook()) {
+            String type = webhookRequest.type();
+            String billingKey = webhookRequest.getBillingKey();
+            processBillingKeyWebhook(type, billingKey);
+        }
+    }
+
+    private void processBillingKeyWebhook(String type, String billingKey) {
+        if(type.equals("BillingKey.Issued")) {
+            Subscription subscription = subscriptionRepository.findByBillingKey(billingKey)
+                .orElseThrow(() -> new NotFoundException(ExceptionCode.BILLING_KEY_NOT_FOUND));
+            subscription.updateBillingKey(billingKey);
+        }
     }
 
     private void processPaymentVerification(String paymentId, String iamPortTransactionId) {
@@ -85,7 +104,7 @@ public class PaymentService {
         }
 
         Payment payment = portOneClient.getPayment().getPayment(iamPortTransactionId).join();
-        
+
         if (payment == null) {
             throw new PaymentVerificationException(ExceptionCode.PAYMENT_VERIFICATION_FAILED);
         }
@@ -104,5 +123,21 @@ public class PaymentService {
         }
 
         paymentStatusConverter.processPayment(order, payment);
+    }
+
+    @Transactional
+    public void cancelSubscription(UUID memberId, CancelSubscriptionRequest request) {
+        Subscription subscription = subscriptionRepository.findByMemberId(memberId)
+            .orElseThrow(() -> new NotFoundException(ExceptionCode.SUBSCRIPTION_NOT_FOUND));
+
+        Order order = orderRepository.findBySubscription(subscription)
+            .orElseThrow(() -> new NotFoundException(ExceptionCode.ORDER_NOT_FOUND));
+        
+        String paymentId = order.getPaymentId();
+
+        portOneClient.getPayment().cancelPayment(paymentId, null, null, null, request.reason(), null, null, null, null).join();
+
+        order.updateStatus(PaymentStatus.CANCELED);
+        subscription.deactivate();
     }
 }
