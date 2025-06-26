@@ -94,7 +94,11 @@ public class PaymentServiceTest {
     @Test
     @DisplayName("결제 검증 성공: 위변조가 없는 결제 건에 대해 구독 상태를 성공적으로 업데이트한다")
     void verifyAndProcess_success() {
-        Subscription mockSubscription = Subscription.builder().memberId(memberId).build();
+        Subscription mockSubscription = Subscription.builder()
+                .memberId(memberId)
+                .tier(SubscriptionTier.FREE)
+                .build();
+
         // given
         Order pendingOrder = Order.builder()
                 .paymentId(paymentId)
@@ -138,7 +142,11 @@ public class PaymentServiceTest {
     @DisplayName("실제 DelegatingPaymentStatusConverter를 사용한 결제 검증 테스트")
     void verifyAndProcess_withRealDelegatingConverter() {
         // given
-        Subscription mockSubscription = Subscription.builder().memberId(memberId).build();
+        Subscription mockSubscription = Subscription.builder()
+                .memberId(memberId)
+                .tier(SubscriptionTier.FREE)
+                .build();
+                
         Order pendingOrder = Order.builder()
                 .paymentId(paymentId)
                 .amount(new BigDecimal("100000"))
