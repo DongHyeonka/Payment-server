@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
+import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 import static org.springframework.http.HttpStatus.CONFLICT;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
@@ -22,7 +23,9 @@ public enum ExceptionCode {
     PAYMENT_VERIFICATION_FAILED(BAD_REQUEST, "P004", "존재하지 않는 거래입니다"),
     PAYMENT_NOT_RECOGNIZED(INTERNAL_SERVER_ERROR, "P005", "결제 정보를 인식할 수 없습니다"),
     PAYMENT_AMOUNT_MISMATCH(CONFLICT, "P006", "결제 금액이 불일치합니다"),
-    UNSUPPORTED_PAYMENT_STATUS(INTERNAL_SERVER_ERROR, "P007", "지원하지 않는 결제 상태입니다")
+    UNSUPPORTED_PAYMENT_STATUS(INTERNAL_SERVER_ERROR, "P007", "지원하지 않는 결제 상태입니다"),
+    
+    UNAUTHORIZED_USER(UNAUTHORIZED, "P009", "권한이 없습니다"),
     ;
 
     private final HttpStatus status;

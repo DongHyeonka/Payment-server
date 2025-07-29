@@ -43,8 +43,11 @@ public class PaymentController {
      * @return
      */
     @PostMapping("/verify")
-    public ResponseEntity<Void> verifyPayment(@RequestBody @Valid PaymentVerificationRequest request) {
-        paymentService.verifyAndProcess(request);
+    public ResponseEntity<Void> verifyPayment(
+        @RequestBody @Valid PaymentVerificationRequest request,
+        @AuthenticationPrincipal UUID memberId
+    ) {
+        paymentService.verifyAndProcess(request, memberId);
         return ResponseEntity.ok().build();
     }
 
