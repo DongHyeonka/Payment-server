@@ -33,7 +33,8 @@ public class PaidPaymentConverter implements PaymentStatusConverter {
         
         order.updateStatus(PaymentStatus.PAID);
         Subscription subscription = order.getSubscription();
-        subscription.activate(SubscriptionTier.PRO);
+        subscription.updateBillingKey(recognizedPayment.getBillingKey());
+        subscription.renewSubscription(SubscriptionTier.PRO);
         
         log.info("결제 완료 처리 완료. paymentId={}", order.getPaymentId());
     }

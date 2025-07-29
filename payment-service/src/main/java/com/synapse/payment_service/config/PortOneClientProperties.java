@@ -7,7 +7,8 @@ public record PortOneClientProperties(
     String apiSecret,
     String baseUrl,
     String midKey,
-    String webhookSecret
+    String webhookSecret,
+    String channelKey
 ) {
     
 }

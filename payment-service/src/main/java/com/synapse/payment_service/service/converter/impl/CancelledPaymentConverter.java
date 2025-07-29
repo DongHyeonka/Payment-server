@@ -24,7 +24,7 @@ public class CancelledPaymentConverter implements PaymentStatusConverter {
         log.info("결제 취소 처리 시작. paymentId={}", order.getPaymentId());
         
         // 주문 상태를 취소로 업데이트
-        order.updateStatus(PaymentStatus.CANCELLED);
+        order.updateStatus(PaymentStatus.CANCELED);
         
         // 구독 비활성화
         order.getSubscription().deactivate();

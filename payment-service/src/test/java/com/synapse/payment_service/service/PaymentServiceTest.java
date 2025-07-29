@@ -94,7 +94,11 @@ public class PaymentServiceTest {
     @Test
     @DisplayName("결제 검증 성공: 위변조가 없는 결제 건에 대해 구독 상태를 성공적으로 업데이트한다")
     void verifyAndProcess_success() {
-        Subscription mockSubscription = Subscription.builder().memberId(memberId).build();
+        Subscription mockSubscription = Subscription.builder()
+                .memberId(memberId)
+                .tier(SubscriptionTier.FREE)
+                .build();
+
         // given
         Order pendingOrder = Order.builder()
                 .paymentId(paymentId)
@@ -120,12 +124,12 @@ public class PaymentServiceTest {
         doAnswer(invocation -> {
             Order order = invocation.getArgument(0);
             order.updateStatus(PaymentStatus.PAID);
-            order.getSubscription().activate(SubscriptionTier.PRO);
+            order.getSubscription().renewSubscription(SubscriptionTier.PRO);
             return null;
         }).when(paymentStatusConverter).processPayment(any(Order.class), any(Payment.class));
 
         // when
-        paymentService.verifyAndProcess(new PaymentVerificationRequest(paymentId, iamPortTransactionId));
+        paymentService.verifyAndProcess(new PaymentVerificationRequest(paymentId, iamPortTransactionId), memberId);
 
         // then
         assertThat(pendingOrder.getStatus()).isEqualTo(PaymentStatus.PAID);
@@ -138,7 +142,11 @@ public class PaymentServiceTest {
     @DisplayName("실제 DelegatingPaymentStatusConverter를 사용한 결제 검증 테스트")
     void verifyAndProcess_withRealDelegatingConverter() {
         // given
-        Subscription mockSubscription = Subscription.builder().memberId(memberId).build();
+        Subscription mockSubscription = Subscription.builder()
+                .memberId(memberId)
+                .tier(SubscriptionTier.FREE)
+                .build();
+                
         Order pendingOrder = Order.builder()
                 .paymentId(paymentId)
                 .amount(new BigDecimal("100000"))
@@ -168,7 +176,7 @@ public class PaymentServiceTest {
 
         // when
         paymentServiceWithRealConverter.verifyAndProcess(
-            new PaymentVerificationRequest(paymentId, iamPortTransactionId));
+            new PaymentVerificationRequest(paymentId, iamPortTransactionId), memberId);
 
         // then - 실제 PaidPaymentConverter 로직에 의한 상태 변경 검증
         assertThat(pendingOrder.getStatus()).isEqualTo(PaymentStatus.PAID);

@@ -1,5 +1,6 @@
 package com.synapse.payment_service.dto.request;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -7,26 +8,44 @@ import java.io.IOException;
 import java.util.Optional;
 
 public record PaymentWebhookRequest(
-    String paymentId,
-    String transactionId,
-    String type
+    @JsonProperty("type")
+    String type,
+    @JsonProperty("timestamp")
+    String timestamp,
+    @JsonProperty("data")
+    JsonNode data
 ) {
+    
     public static PaymentWebhookRequest from(String requestBody, ObjectMapper objectMapper) throws IOException {
-        JsonNode root = objectMapper.readTree(requestBody);
-        
-        // data 노드가 있으면 그 안에서, 없으면 루트에서 찾기
-        JsonNode dataNode = Optional.ofNullable(root.get("data")).orElse(root);
-        
-        return new PaymentWebhookRequest(
-            extractText(dataNode, "paymentId"),
-            extractText(dataNode, "transactionId"),
-            extractText(root, "type")  // type은 항상 루트 레벨에 있음
-        );
+        return objectMapper.readValue(requestBody, PaymentWebhookRequest.class);
+    }
+
+    public String getPaymentId() {
+        if (data == null) return null;
+        return extractText(data, "paymentId");
     }
     
-    private static String extractText(JsonNode node, String fieldName) {
+    public String getTransactionId() {
+        if (data == null) return null;
+        return extractText(data, "transactionId");
+    }
+    
+    public String getBillingKey() {
+        if (data == null) return null;
+        return extractText(data, "billingKey");
+    }
+    
+    private String extractText(JsonNode node, String fieldName) {
         return Optional.ofNullable(node.get(fieldName))
                 .map(JsonNode::asText)
                 .orElse(null);
+    }
+    
+    public boolean isTransactionWebhook() {
+        return type != null && type.startsWith("Transaction.");
+    }
+    
+    public boolean isBillingKeyWebhook() {
+        return type != null && type.startsWith("BillingKey.");
     }
 } 

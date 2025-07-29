@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.synapse.payment_service.dto.request.CancelSubscriptionRequest;
 import com.synapse.payment_service.dto.request.PaymentRequestDto;
 import com.synapse.payment_service.dto.request.PaymentVerificationRequest;
 import com.synapse.payment_service.dto.response.PaymentPreparationResponse;
@@ -42,9 +43,20 @@ public class PaymentController {
      * @return
      */
     @PostMapping("/verify")
-    public ResponseEntity<Void> verifyPayment(@RequestBody @Valid PaymentVerificationRequest request) {
-        paymentService.verifyAndProcess(request);
+    public ResponseEntity<Void> verifyPayment(
+        @RequestBody @Valid PaymentVerificationRequest request,
+        @AuthenticationPrincipal UUID memberId
+    ) {
+        paymentService.verifyAndProcess(request, memberId);
         return ResponseEntity.ok().build();
     }
-    
+
+    @PostMapping("/subscriptions/cancel")
+    public ResponseEntity<Void> cancelSubscription(
+        @RequestBody @Valid CancelSubscriptionRequest request,
+        @AuthenticationPrincipal UUID memberId
+    ) {
+        paymentService.cancelSubscription(memberId, request);
+        return ResponseEntity.ok().build();
+    }
 }
