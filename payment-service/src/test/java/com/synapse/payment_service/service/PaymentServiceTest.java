@@ -129,7 +129,7 @@ public class PaymentServiceTest {
         }).when(paymentStatusConverter).processPayment(any(Order.class), any(Payment.class));
 
         // when
-        paymentService.verifyAndProcess(new PaymentVerificationRequest(paymentId, iamPortTransactionId));
+        paymentService.verifyAndProcess(new PaymentVerificationRequest(paymentId, iamPortTransactionId), memberId);
 
         // then
         assertThat(pendingOrder.getStatus()).isEqualTo(PaymentStatus.PAID);
@@ -176,7 +176,7 @@ public class PaymentServiceTest {
 
         // when
         paymentServiceWithRealConverter.verifyAndProcess(
-            new PaymentVerificationRequest(paymentId, iamPortTransactionId));
+            new PaymentVerificationRequest(paymentId, iamPortTransactionId), memberId);
 
         // then - 실제 PaidPaymentConverter 로직에 의한 상태 변경 검증
         assertThat(pendingOrder.getStatus()).isEqualTo(PaymentStatus.PAID);

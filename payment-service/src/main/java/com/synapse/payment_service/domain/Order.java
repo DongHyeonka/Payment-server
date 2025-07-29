@@ -102,7 +102,6 @@ public class Order extends BaseEntity {
     }
 
     public String getOrderName() {
-        // paymentId에서 orderName 추출 (UUID 부분 제거)
         String[] parts = this.paymentId.split("_");
         if (parts.length >= 2) {
             return parts[0] + "_" + parts[1]; // tier_subscription 형태

@@ -46,6 +46,9 @@ public class Subscription extends BaseEntity {
     @Column(nullable = false)
     private boolean autoRenew = true;
 
+    @Column(nullable = false)
+    private Integer retryCount = 0;
+
     @Builder
     public Subscription(UUID memberId, SubscriptionTier tier, int remainingChatCredits, ZonedDateTime expiresAt, SubscriptionStatus status) {
         this.memberId = memberId;
@@ -54,6 +57,7 @@ public class Subscription extends BaseEntity {
         this.expiresAt = expiresAt;
         this.status = status;
         this.autoRenew = true;
+        this.retryCount = 0;
     }
 
     public void deactivate() {
@@ -87,5 +91,15 @@ public class Subscription extends BaseEntity {
         this.status = SubscriptionStatus.ACTIVE;
         this.tier = newTier;
         this.autoRenew = true;
+    }
+
+    public void handlePaymentFailure() {
+        this.status = SubscriptionStatus.PAYMENT_FAILED;
+        this.retryCount++;
+    }
+
+    public void expireSubscription() {
+        this.status = SubscriptionStatus.EXPIRED;
+        this.autoRenew = false;
     }
 }

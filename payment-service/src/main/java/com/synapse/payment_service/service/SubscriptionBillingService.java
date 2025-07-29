@@ -2,8 +2,8 @@ package com.synapse.payment_service.service;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.List;
-import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -12,7 +12,6 @@ import com.synapse.payment_service.config.PortOneClientProperties;
 import com.synapse.payment_service.domain.Order;
 import com.synapse.payment_service.domain.Subscription;
 import com.synapse.payment_service.domain.enums.PaymentStatus;
-import com.synapse.payment_service.domain.enums.SubscriptionTier;
 import com.synapse.payment_service.repository.OrderRepository;
 import com.synapse.payment_service.repository.SubscriptionRepository;
 
@@ -35,54 +34,58 @@ public class SubscriptionBillingService {
     @Transactional
     public void processDailySubscriptions() {
         // 오늘이 다음 결제일인 모든 활성 구독을 찾는다.
-        List<Subscription> targets = subscriptionRepository.findActiveSubscriptionsDueForRenewal(LocalDate.now());
+        LocalDate today = LocalDate.now();
+        ZonedDateTime startOfDay = today.atStartOfDay(ZoneId.systemDefault());
+        ZonedDateTime endOfDay = today.plusDays(1).atStartOfDay(ZoneId.systemDefault());
+        
+        List<Subscription> targets = subscriptionRepository.findActiveSubscriptionsDueForRenewal(startOfDay, endOfDay);
         for (Subscription subscription : targets) {
             chargeWithBillingKey(subscription);
         }
     }
 
     private void chargeWithBillingKey(Subscription subscription) {
-        SubscriptionTier tier = subscription.getTier();
+        // Order 객체를 먼저 생성하여 일관된 로직 사용
+        Order order = Order.createForSubscription(subscription, subscription.getTier());
+        orderRepository.save(order); // PENDING 상태로 저장
+        
         String billingKey = subscription.getBillingKey();
-        PaymentAmountInput amount = new PaymentAmountInput(tier.getMonthlyPrice().longValue(), 0L, 0L);
-        String orderName = tier.getTierName() + "_" + "subscription";
-        String paymentId = orderName + "_" + UUID.randomUUID();
+        PaymentAmountInput amount = new PaymentAmountInput(subscription.getTier().getMonthlyPrice().longValue(), 0L, 0L);
 
         // 빌링키 결제 요청
         try {
-            PayWithBillingKeyResponse response = portOneClient.getPayment().payWithBillingKey(paymentId, billingKey, portOneClientProperties.channelKey(), orderName, null, null, amount, null, null, null, null, null, null, null, null, null, null, null, null, null, null).join();
-            successHandler(response, paymentId, orderName, subscription);
-            log.info("구독 결제 성공. paymentId={}, orderName={}, subscriptionId={}", paymentId, orderName, subscription.getId());
+            PayWithBillingKeyResponse response = portOneClient.getPayment().payWithBillingKey(
+                order.getPaymentId(), 
+                billingKey, 
+                portOneClientProperties.channelKey(), 
+                order.getOrderName(), 
+                null, null, amount, null, null, null, null, null, null, null, null, null, null, null, null, null, null
+            ).join();
+            successHandler(response, order, subscription);
+            log.info("구독 결제 성공. paymentId={}, orderName={}, subscriptionId={}", order.getPaymentId(), order.getOrderName(), subscription.getId());
         } catch (Exception e) {
-            failureHandler(paymentId, orderName, subscription);
-            log.error("구독 결제 실패. paymentId={}, orderName={}, subscriptionId={}", paymentId, orderName, subscription.getId());
+            failureHandler(order, subscription);
+            log.error("구독 결제 실패. paymentId={}, orderName={}, subscriptionId={}", order.getPaymentId(), order.getOrderName(), subscription.getId());
         }
     }
 
-    private void successHandler(PayWithBillingKeyResponse response, String paymentId, String orderName, Subscription subscription) {
-        // 결제 정보 저장
-        Order order = Order.builder()
-                .subscription(subscription)
-                .iamPortTransactionId(response.getPayment().getPgTxId())
-                .paymentId(paymentId)
-                .amount(subscription.getTier().getMonthlyPrice())
-                .status(PaymentStatus.PAID)
-                .paidAt(response.getPayment().getPaidAt().atZone(ZoneId.of("Asia/Seoul")))
-                .build();
+    private void successHandler(PayWithBillingKeyResponse response, Order order, Subscription subscription) {
+        // 기존 Order 객체 업데이트
+        order.updateIamPortTransactionId(response.getPayment().getPgTxId());
+        order.markAsPaid();
                 
         subscription.renewSubscription(subscription.getTier());
 
         orderRepository.save(order);
     }
 
-    private void failureHandler(String paymentId, String orderName, Subscription subscription) {
-        // 결제 실패 정보 저장
-        Order order = Order.builder()
-                .subscription(subscription)
-                .paymentId(paymentId)
-                .amount(subscription.getTier().getMonthlyPrice())
-                .status(PaymentStatus.FAILED)
-                .build();
+    private void failureHandler(Order order, Subscription subscription) {
+        // 기존 Order 객체 상태를 FAILED로 업데이트
+        order.updateStatus(PaymentStatus.FAILED);
         orderRepository.save(order);
+        
+        // 구독 상태를 PAYMENT_FAILED로 변경하고 retryCount 증가
+        subscription.handlePaymentFailure();
+        subscriptionRepository.save(subscription);
     }
 }
