@@ -131,9 +131,9 @@ public class PaymentService {
         Order order = orderRepository.findBySubscription(subscription)
             .orElseThrow(() -> new NotFoundException(ExceptionCode.ORDER_NOT_FOUND));
         
-        String paymentId = order.getPaymentId();
+        // String paymentId = order.getPaymentId();
 
-        portOneClient.getPayment().cancelPayment(paymentId, null, null, null, request.reason(), null, null, null, null).join();
+        // portOneClient.getPayment().cancelPayment(paymentId, null, null, null, request.reason(), null, null, null, null).join();
 
         // 도메인 객체의 비즈니스 메서드 사용
         order.cancel();
