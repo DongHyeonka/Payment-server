@@ -334,11 +334,12 @@ class SubscriptionRepositoryTest extends TestConfig {
     void findByStatusInAndExpiresAtBefore_shouldNotReturnCurrentOrFutureSubscriptions() {
         // given
         ZonedDateTime currentTime = ZonedDateTime.now();
+        ZonedDateTime currentTimeExact = currentTime.plusSeconds(1); // 시간 정밀도 문제 해결을 위해 1초 후 시간 사용
         ZonedDateTime futureTime = currentTime.plusDays(1);
 
         // 현재 시간과 같은 만료일을 가진 구독
         Subscription canceledCurrentSubscription = createSubscriptionWithStatus(SubscriptionStatus.CANCELED,
-                currentTime);
+                currentTimeExact);
 
         // 미래 만료일을 가진 구독
         Subscription canceledFutureSubscription = createSubscriptionWithStatus(SubscriptionStatus.CANCELED, futureTime);
