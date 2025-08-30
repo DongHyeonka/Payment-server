@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -13,20 +15,22 @@ import com.synapse.payment_service.domain.entity.Subscription;
 import com.synapse.payment_service.domain.enums.SubscriptionStatus;
 
 public interface SubscriptionRepository extends JpaRepository<Subscription, UUID> {
-    Optional<Subscription> findByMemberId(UUID memberId);
+    Optional<Subscription> findByMemberId(UUID memberId); // 여기도 동일하게 인덱스 걸려있음
 
-    Optional<Subscription> findByBillingKey(String billingKey);
+    Optional<Subscription> findByBillingKey(String billingKey); // 여기도 동일하게 걸려있음
 
     @Query("SELECT s FROM Subscription s WHERE s.status = 'ACTIVE' AND s.autoRenew = true AND s.billingKey IS NOT NULL AND s.expiresAt >= :startOfDay AND s.expiresAt < :endOfDay")
-    List<Subscription> findActiveSubscriptionsDueForRenewal(@Param("startOfDay") ZonedDateTime startOfDay, @Param("endOfDay") ZonedDateTime endOfDay);
+    Slice<Subscription> findActiveSubscriptionsDueForRenewal(
+        @Param("startOfDay") ZonedDateTime startOfDay, 
+        @Param("endOfDay") ZonedDateTime endOfDay, 
+        Pageable pageable
+    );
 
-    /**
-     * 만료 처리 대상 구독을 조회합니다.
-     * CANCELED 또는 PAYMENT_FAILED 상태이고, 만료일이 지난 구독을 반환합니다.
-     * 
-     * @param statuses    조회할 구독 상태 목록 (CANCELED, PAYMENT_FAILED)
-     * @param currentTime 현재 시간
-     * @return 만료 처리 대상 구독 목록
-     */
-    List<Subscription> findByStatusInAndExpiresAtBefore(List<SubscriptionStatus> statuses, ZonedDateTime currentTime);
+    // 복합 인덱스를 걸어서 성능 최적화 진행 끝
+    @Query("SELECT s FROM Subscription s WHERE s.status IN (:statuses) AND s.expiresAt < :currentTime")
+    Slice<Subscription> findExpiredSubscriptionsWithCursor(
+        @Param("statuses") List<SubscriptionStatus> statuses, 
+        @Param("currentTime") ZonedDateTime currentTime, 
+        Pageable pageable
+    );
 }

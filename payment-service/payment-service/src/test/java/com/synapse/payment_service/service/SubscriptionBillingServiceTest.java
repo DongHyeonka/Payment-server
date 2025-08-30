@@ -18,6 +18,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.SliceImpl;
 
 import com.synapse.payment_service.TestConfig;
 import com.synapse.payment_service.configuration.PortOneClientProperties;
@@ -57,9 +60,9 @@ public class SubscriptionBillingServiceTest extends TestConfig {
         given(mockSubscription.getTier()).willReturn(SubscriptionTier.PRO);
         given(mockSubscription.getId()).willReturn(UUID.randomUUID());
 
-        List<Subscription> targets = List.of(mockSubscription);
+        Slice<Subscription> targets = new SliceImpl<>(List.of(mockSubscription));
         given(subscriptionRepository.findActiveSubscriptionsDueForRenewal(any(ZonedDateTime.class),
-                any(ZonedDateTime.class))).willReturn(targets);
+                any(ZonedDateTime.class), any(PageRequest.class))).willReturn(targets);
 
         // PortOne SDK의 응답을 모의 처리
         PayWithBillingKeyResponse mockResponse = mock(PayWithBillingKeyResponse.class);
@@ -107,9 +110,9 @@ public class SubscriptionBillingServiceTest extends TestConfig {
         given(mockSubscription.getTier()).willReturn(SubscriptionTier.PRO);
         given(mockSubscription.getId()).willReturn(UUID.randomUUID());
 
-        List<Subscription> targets = List.of(mockSubscription);
+        Slice<Subscription> targets = new SliceImpl<>(List.of(mockSubscription));
         given(subscriptionRepository.findActiveSubscriptionsDueForRenewal(any(ZonedDateTime.class),
-                any(ZonedDateTime.class))).willReturn(targets);
+                any(ZonedDateTime.class), any(PageRequest.class))).willReturn(targets);
 
         // PortOne SDK가 예외를 던지는 상황을 모의 처리
         given(portoneClient.getPayment()).willReturn(paymentClient);

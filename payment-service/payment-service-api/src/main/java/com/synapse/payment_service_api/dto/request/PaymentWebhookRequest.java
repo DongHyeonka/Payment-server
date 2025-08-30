@@ -40,6 +40,14 @@ public record PaymentWebhookRequest(
                 .orElse(null);
     }
 
+    public boolean isPaid() {
+        return type != null && type.equals("Transaction.Paid");
+    }
+
+    public boolean isFailed() {
+        return type != null && type.equals("Transaction.Failed");
+    }
+
     public boolean isTransactionWebhook() {
         return type != null && type.startsWith("Transaction.");
     }

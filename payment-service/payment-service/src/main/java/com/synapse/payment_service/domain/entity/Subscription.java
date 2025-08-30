@@ -17,7 +17,9 @@ import lombok.NoArgsConstructor;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Table(name = "subscriptions")
+@Table(name = "subscriptions", indexes = {
+    @Index(name = "idx_status_expiresat", columnList = "status, expires_at") // 복합 인덱스를 걸 경우 많은 데이터에 대해서 먼저 걸러내고 나머지 컬럼에 대한 데이터를 추려내는 것이 빠르다.
+})
 public class Subscription extends BaseTimeEntity {
 
     @Id
@@ -37,7 +39,7 @@ public class Subscription extends BaseTimeEntity {
     @Column(name = "expires_at")
     private ZonedDateTime expiresAt;
 
-    @Column(name = "billing_key")
+    @Column(name = "billing_key", unique = true)
     private String billingKey;
 
     @Enumerated(EnumType.STRING)

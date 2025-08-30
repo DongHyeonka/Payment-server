@@ -10,7 +10,6 @@ import static org.mockito.Mockito.never;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
 import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -18,6 +17,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.SliceImpl;
 
 import com.synapse.payment_service.TestConfig;
 import com.synapse.payment_service.domain.entity.Subscription;
@@ -68,17 +70,18 @@ class SubscriptionSchedulerTest extends TestConfig {
     @DisplayName("만료된 구독들의 상태를 EXPIRED로 변경하고 autoRenew를 false로 설정한다")
     void expireSubscriptions_shouldUpdateExpiredSubscriptionsToExpiredStatusAndDisableAutoRenew() {
         // given
-        List<Subscription> expiredSubscriptions = Arrays.asList(canceledSubscription, paymentFailedSubscription);
-        when(subscriptionRepository.findByStatusInAndExpiresAtBefore(anyList(), any(ZonedDateTime.class)))
+        Slice<Subscription> expiredSubscriptions = new SliceImpl<>(Arrays.asList(canceledSubscription, paymentFailedSubscription));
+        when(subscriptionRepository.findExpiredSubscriptionsWithCursor(anyList(), any(ZonedDateTime.class), any(PageRequest.class)))
                 .thenReturn(expiredSubscriptions);
 
         // when
         subscriptionScheduler.expireSubscriptions();
 
         // then
-        verify(subscriptionRepository, times(1)).findByStatusInAndExpiresAtBefore(
+        verify(subscriptionRepository, times(1)).findExpiredSubscriptionsWithCursor(
                 anyList(),
-                any(ZonedDateTime.class));
+                any(ZonedDateTime.class),
+                any(PageRequest.class));
         verify(subscriptionRepository, times(1)).saveAll(expiredSubscriptions);
 
         // 각 구독의 expireSubscription 메서드가 호출되었는지 확인
@@ -89,16 +92,17 @@ class SubscriptionSchedulerTest extends TestConfig {
     @DisplayName("만료 대상 구독이 없으면 저장 작업을 수행하지 않는다")
     void expireSubscriptions_shouldNotSaveWhenNoExpiredSubscriptions() {
         // given
-        when(subscriptionRepository.findByStatusInAndExpiresAtBefore(anyList(), any(ZonedDateTime.class)))
-                .thenReturn(Collections.emptyList());
+        when(subscriptionRepository.findExpiredSubscriptionsWithCursor(anyList(), any(ZonedDateTime.class), any(PageRequest.class)))
+                .thenReturn(new SliceImpl<>(Collections.emptyList()));
 
         // when
         subscriptionScheduler.expireSubscriptions();
 
         // then
-        verify(subscriptionRepository, times(1)).findByStatusInAndExpiresAtBefore(
+        verify(subscriptionRepository, times(1)).findExpiredSubscriptionsWithCursor(
                 anyList(),
-                any(ZonedDateTime.class));
+                any(ZonedDateTime.class),
+                any(PageRequest.class));
         verify(subscriptionRepository, never()).saveAll(anyList());
     }
 

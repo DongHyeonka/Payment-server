@@ -4,20 +4,17 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.synapse.payment_service.configuration.PortOneClientProperties;
-import com.synapse.payment_service.domain.entity.Order;
 import com.synapse.payment_service.domain.entity.Subscription;
-import com.synapse.payment_service.domain.enums.PaymentStatus;
-import com.synapse.payment_service.domain.repository.OrderRepository;
-import com.synapse.payment_service.domain.repository.SubscriptionRepository;
-
-import io.portone.sdk.server.PortOneClient;
-import io.portone.sdk.server.common.PaymentAmountInput;
-import io.portone.sdk.server.payment.PayWithBillingKeyResponse;
+import com.synapse.payment_service.service.persistence.db.PaymentServiceSubscriptionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -26,10 +23,9 @@ import lombok.extern.slf4j.Slf4j;
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class SubscriptionBillingService {
-    private final SubscriptionRepository subscriptionRepository;
-    private final OrderRepository orderRepository;
-    private final PortOneClient portOneClient;
-    private final PortOneClientProperties portOneClientProperties;
+    private final PaymentServiceSubscriptionRepository paymentServiceSubscriptionRepository;
+    private final SubscriptionBillingWorker subscriptionBillingWorker;
+    private final ExecutorService billingExecutor = Executors.newFixedThreadPool(10);
 
     @Transactional
     public void processDailySubscriptions() {
@@ -37,55 +33,68 @@ public class SubscriptionBillingService {
         LocalDate today = LocalDate.now();
         ZonedDateTime startOfDay = today.atStartOfDay(ZoneId.systemDefault());
         ZonedDateTime endOfDay = today.plusDays(1).atStartOfDay(ZoneId.systemDefault());
+        final int PAGE_SIZE = 100;
 
-        List<Subscription> targets = subscriptionRepository.findActiveSubscriptionsDueForRenewal(startOfDay, endOfDay);
-        for (Subscription subscription : targets) {
-            chargeWithBillingKey(subscription);
+        Slice<Subscription> targetSlice = paymentServiceSubscriptionRepository.findActiveSubscriptionsDueForRenewal(
+            startOfDay, endOfDay, PageRequest.of(0, PAGE_SIZE)
+        );
+
+        if (targetSlice.isEmpty()) {
+            log.info("오늘 결제 대상인 구독이 없습니다.");
+            return;
         }
+
+        do {
+            List<Subscription> subscriptionsInPage = targetSlice.getContent();
+
+            List<CompletableFuture<Void>> futures = subscriptionsInPage.stream()
+                    .map(subscription -> CompletableFuture.runAsync(
+                        () -> subscriptionBillingWorker.chargeAndRenewSubscription(subscription), billingExecutor)
+                    )
+                    .toList();
+
+            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+            log.info("페이지 처리가 완료되었습니다.");
+
+            if (targetSlice.hasNext()) {
+                targetSlice = paymentServiceSubscriptionRepository.findActiveSubscriptionsDueForRenewal(
+                    startOfDay, endOfDay, targetSlice.nextPageable()
+                );
+            } else {
+                break;
+            }
+        } while (true);
     }
 
-    private void chargeWithBillingKey(Subscription subscription) {
-        // Order 객체를 먼저 생성하여 일관된 로직 사용
-        Order order = Order.createForSubscription(subscription, subscription.getTier());
-        orderRepository.save(order); // PENDING 상태로 저장
+    @Transactional
+    public long processDailyExpiredSubscriptions() {
+        final int PAGE_SIZE = 100;
+        long totalProcessedCount = 0;
 
-        String billingKey = subscription.getBillingKey();
-        PaymentAmountInput amount = new PaymentAmountInput(subscription.getTier().getMonthlyPrice().longValue(), 0L, 0L);
+        Slice<Subscription> expiredSubscriptions = paymentServiceSubscriptionRepository
+                .findExpiredSubscriptionsWithCursor(
+                        PageRequest.of(0, PAGE_SIZE));
 
-        // 빌링키 결제 요청
-        try {
-            PayWithBillingKeyResponse response = portOneClient.getPayment().payWithBillingKey(
-                    order.getPaymentId(),
-                    billingKey,
-                    portOneClientProperties.channelKey(),
-                    order.getOrderName(),
-                    null, null, amount, null, null, null, null, null, null, null, null, null, null, null, null, null,
-                    null).join();
-            successHandler(response, order, subscription);
-            log.info("구독 결제 성공. paymentId={}, orderName={}, subscriptionId={}", order.getPaymentId(), order.getOrderName(), subscription.getId());
-        } catch (Exception e) {
-            failureHandler(order, subscription);
-            log.error("구독 결제 실패. paymentId={}, orderName={}, subscriptionId={}", order.getPaymentId(), order.getOrderName(), subscription.getId());
+        if (expiredSubscriptions.isEmpty()) {
+            log.info("만료 처리할 구독이 없습니다.");
+            return totalProcessedCount;
         }
-    }
 
-    private void successHandler(PayWithBillingKeyResponse response, Order order, Subscription subscription) {
-        // 기존 Order 객체 업데이트
-        order.updateIamPortTransactionId(response.getPayment().getPgTxId());
-        order.markAsPaid();
+        do {
+            List<Subscription> subscriptions = expiredSubscriptions.getContent();
 
-        subscription.renewSubscription(subscription.getTier());
+            subscriptions.forEach(Subscription::expireSubscription); // 커서 기반 조회를 통해서 가져오기에 따로 Map 자료구조가 아닌 forEach로도 충분함
 
-        orderRepository.save(order);
-    }
+            totalProcessedCount += subscriptions.size();
 
-    private void failureHandler(Order order, Subscription subscription) {
-        // 기존 Order 객체 상태를 FAILED로 업데이트
-        order.updateStatus(PaymentStatus.FAILED);
-        orderRepository.save(order);
+            if (expiredSubscriptions.hasNext()) {
+                expiredSubscriptions = paymentServiceSubscriptionRepository.findExpiredSubscriptionsWithCursor(
+                        expiredSubscriptions.nextPageable());
+            } else {
+                break;
+            }
+        } while (true);
 
-        // 구독 상태를 PAYMENT_FAILED로 변경하고 retryCount 증가
-        subscription.handlePaymentFailure();
-        subscriptionRepository.save(subscription);
+        return totalProcessedCount;
     }
 }

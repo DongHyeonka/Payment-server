@@ -11,6 +11,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Slice;
 
 import com.synapse.payment_service.TestConfig;
 import com.synapse.payment_service.domain.entity.Subscription;
@@ -56,11 +58,11 @@ class SubscriptionRepositoryTest extends TestConfig {
         // when
         ZonedDateTime startOfDay = targetDate.atStartOfDay(ZonedDateTime.now().getZone());
         ZonedDateTime endOfDay = targetDate.plusDays(1).atStartOfDay(ZonedDateTime.now().getZone());
-        List<Subscription> result = subscriptionRepository.findActiveSubscriptionsDueForRenewal(startOfDay, endOfDay);
+        Slice<Subscription> result = subscriptionRepository.findActiveSubscriptionsDueForRenewal(startOfDay, endOfDay, PageRequest.of(0, 100));
 
         // then
         assertThat(result).hasSize(1);
-        assertThat(result.get(0).getId()).isEqualTo(exactDateSubscription.getId());
+        assertThat(result.getContent().get(0).getId()).isEqualTo(exactDateSubscription.getId());
     }
 
     @Test
@@ -80,7 +82,7 @@ class SubscriptionRepositoryTest extends TestConfig {
         // when
         ZonedDateTime startOfDay = targetDate.atStartOfDay(ZonedDateTime.now().getZone());
         ZonedDateTime endOfDay = targetDate.plusDays(1).atStartOfDay(ZonedDateTime.now().getZone());
-        List<Subscription> result = subscriptionRepository.findActiveSubscriptionsDueForRenewal(startOfDay, endOfDay);
+        Slice<Subscription> result = subscriptionRepository.findActiveSubscriptionsDueForRenewal(startOfDay, endOfDay, PageRequest.of(0, 100));
 
         // then
         assertThat(result).isEmpty();
@@ -103,7 +105,7 @@ class SubscriptionRepositoryTest extends TestConfig {
         // when
         ZonedDateTime startOfDay = targetDate.atStartOfDay(ZonedDateTime.now().getZone());
         ZonedDateTime endOfDay = targetDate.plusDays(1).atStartOfDay(ZonedDateTime.now().getZone());
-        List<Subscription> result = subscriptionRepository.findActiveSubscriptionsDueForRenewal(startOfDay, endOfDay);
+        Slice<Subscription> result = subscriptionRepository.findActiveSubscriptionsDueForRenewal(startOfDay, endOfDay, PageRequest.of(0, 100));
 
         // then
         assertThat(result).isEmpty();
@@ -138,7 +140,7 @@ class SubscriptionRepositoryTest extends TestConfig {
         // when
         ZonedDateTime startOfDay = targetDate.atStartOfDay(ZonedDateTime.now().getZone());
         ZonedDateTime endOfDay = targetDate.plusDays(1).atStartOfDay(ZonedDateTime.now().getZone());
-        List<Subscription> result = subscriptionRepository.findActiveSubscriptionsDueForRenewal(startOfDay, endOfDay);
+        Slice<Subscription> result = subscriptionRepository.findActiveSubscriptionsDueForRenewal(startOfDay, endOfDay, PageRequest.of(0, 100));
 
         // then
         assertThat(result).isEmpty();
@@ -158,7 +160,8 @@ class SubscriptionRepositoryTest extends TestConfig {
         // when
         ZonedDateTime startOfDay = targetDate.atStartOfDay(ZonedDateTime.now().getZone());
         ZonedDateTime endOfDay = targetDate.plusDays(1).atStartOfDay(ZonedDateTime.now().getZone());
-        List<Subscription> result = subscriptionRepository.findActiveSubscriptionsDueForRenewal(startOfDay, endOfDay);
+        Slice<Subscription> result = subscriptionRepository.findActiveSubscriptionsDueForRenewal(startOfDay, endOfDay,
+                        PageRequest.of(0, 100));
 
         // then
         assertThat(result).isEmpty();
@@ -183,8 +186,8 @@ class SubscriptionRepositoryTest extends TestConfig {
         // when
         ZonedDateTime startOfDay = targetDate.atStartOfDay(ZonedDateTime.now().getZone());
         ZonedDateTime endOfDay = targetDate.plusDays(1).atStartOfDay(ZonedDateTime.now().getZone());
-        List<Subscription> result = subscriptionRepository.findActiveSubscriptionsDueForRenewal(startOfDay, endOfDay);
-
+        Slice<Subscription> result = subscriptionRepository.findActiveSubscriptionsDueForRenewal(startOfDay, endOfDay,
+                        PageRequest.of(0, 100));
         // then
         assertThat(result).isEmpty();
     }
@@ -205,8 +208,8 @@ class SubscriptionRepositoryTest extends TestConfig {
         // when
         ZonedDateTime startOfDay = targetDate.atStartOfDay(ZonedDateTime.now().getZone());
         ZonedDateTime endOfDay = targetDate.plusDays(1).atStartOfDay(ZonedDateTime.now().getZone());
-        List<Subscription> result = subscriptionRepository.findActiveSubscriptionsDueForRenewal(startOfDay, endOfDay);
-
+        Slice<Subscription> result = subscriptionRepository.findActiveSubscriptionsDueForRenewal(startOfDay, endOfDay,
+                        PageRequest.of(0, 100));
         // then
         assertThat(result).hasSize(3);
         assertThat(result).extracting(Subscription::getId)
@@ -235,14 +238,16 @@ class SubscriptionRepositoryTest extends TestConfig {
                 List.of(canceledExpiredSubscription, canceledNotExpiredSubscription, activeExpiredSubscription));
 
         // when
-        List<Subscription> result = subscriptionRepository.findByStatusInAndExpiresAtBefore(
+        Slice<Subscription> result = subscriptionRepository.findExpiredSubscriptionsWithCursor(
                 List.of(SubscriptionStatus.CANCELED, SubscriptionStatus.PAYMENT_FAILED),
-                currentTime);
+                currentTime,
+                PageRequest.of(0, 100)
+                );
 
         // then
         assertThat(result).hasSize(1);
-        assertThat(result.get(0).getId()).isEqualTo(canceledExpiredSubscription.getId());
-        assertThat(result.get(0).getStatus()).isEqualTo(SubscriptionStatus.CANCELED);
+        assertThat(result.getContent().get(0).getId()).isEqualTo(canceledExpiredSubscription.getId());
+        assertThat(result.getContent().get(0).getStatus()).isEqualTo(SubscriptionStatus.CANCELED);
     }
 
     @Test
@@ -264,14 +269,16 @@ class SubscriptionRepositoryTest extends TestConfig {
         subscriptionRepository.saveAll(List.of(paymentFailedExpiredSubscription, paymentFailedNotExpiredSubscription));
 
         // when
-        List<Subscription> result = subscriptionRepository.findByStatusInAndExpiresAtBefore(
+        Slice<Subscription> result = subscriptionRepository.findExpiredSubscriptionsWithCursor(
                 List.of(SubscriptionStatus.CANCELED, SubscriptionStatus.PAYMENT_FAILED),
-                currentTime);
+                currentTime,
+                PageRequest.of(0, 100)
+                );
 
         // then
         assertThat(result).hasSize(1);
-        assertThat(result.get(0).getId()).isEqualTo(paymentFailedExpiredSubscription.getId());
-        assertThat(result.get(0).getStatus()).isEqualTo(SubscriptionStatus.PAYMENT_FAILED);
+        assertThat(result.getContent().get(0).getId()).isEqualTo(paymentFailedExpiredSubscription.getId());
+        assertThat(result.getContent().get(0).getStatus()).isEqualTo(SubscriptionStatus.PAYMENT_FAILED);
     }
 
     @Test
@@ -293,9 +300,11 @@ class SubscriptionRepositoryTest extends TestConfig {
                 .saveAll(List.of(canceledExpired1, canceledExpired2, paymentFailedExpired1, paymentFailedExpired2));
 
         // when
-        List<Subscription> result = subscriptionRepository.findByStatusInAndExpiresAtBefore(
+        Slice<Subscription> result = subscriptionRepository.findExpiredSubscriptionsWithCursor(
                 List.of(SubscriptionStatus.CANCELED, SubscriptionStatus.PAYMENT_FAILED),
-                currentTime);
+                currentTime,
+                PageRequest.of(0, 100)
+                );
 
         // then
         assertThat(result).hasSize(4);
@@ -321,9 +330,11 @@ class SubscriptionRepositoryTest extends TestConfig {
         subscriptionRepository.saveAll(List.of(activeExpiredSubscription, expiredExpiredSubscription));
 
         // when
-        List<Subscription> result = subscriptionRepository.findByStatusInAndExpiresAtBefore(
+        Slice<Subscription> result = subscriptionRepository.findExpiredSubscriptionsWithCursor(
                 List.of(SubscriptionStatus.CANCELED, SubscriptionStatus.PAYMENT_FAILED),
-                currentTime);
+                currentTime,
+                PageRequest.of(0, 100)
+                );
 
         // then
         assertThat(result).isEmpty();
@@ -347,9 +358,11 @@ class SubscriptionRepositoryTest extends TestConfig {
         subscriptionRepository.saveAll(List.of(canceledCurrentSubscription, canceledFutureSubscription));
 
         // when
-        List<Subscription> result = subscriptionRepository.findByStatusInAndExpiresAtBefore(
+        Slice<Subscription> result = subscriptionRepository.findExpiredSubscriptionsWithCursor(
                 List.of(SubscriptionStatus.CANCELED, SubscriptionStatus.PAYMENT_FAILED),
-                currentTime);
+                currentTime,
+                PageRequest.of(0, 100)
+                );
 
         // then
         assertThat(result).isEmpty();
@@ -366,9 +379,11 @@ class SubscriptionRepositoryTest extends TestConfig {
         subscriptionRepository.save(canceledExpiredSubscription);
 
         // when
-        List<Subscription> result = subscriptionRepository.findByStatusInAndExpiresAtBefore(
+        Slice<Subscription> result = subscriptionRepository.findExpiredSubscriptionsWithCursor(
                 List.of(),
-                currentTime);
+                currentTime,
+                PageRequest.of(0, 100)
+                );
 
         // then
         assertThat(result).isEmpty();

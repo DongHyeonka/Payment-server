@@ -93,7 +93,7 @@ public class Order extends BaseEntity {
     // 정적 팩토리 메서드
     public static Order createForSubscription(Subscription subscription, SubscriptionTier tier) {
         BigDecimal amount = tier.getMonthlyPrice();
-        String orderName = tier.getTierName() + "_subscription";
+        String orderName = tier.getSubscriptionTierName() + "_subscription";
         String paymentId = orderName + "_" + UUID.randomUUID();
 
         return Order.builder()
