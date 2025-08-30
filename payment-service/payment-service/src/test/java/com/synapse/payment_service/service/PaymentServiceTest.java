@@ -27,8 +27,8 @@ import com.synapse.payment_service.domain.entity.Subscription;
 import com.synapse.payment_service.domain.enums.PaymentStatus;
 import com.synapse.payment_service.domain.enums.SubscriptionStatus;
 import com.synapse.payment_service.domain.enums.SubscriptionTier;
-import com.synapse.payment_service.service.convert.DelegatingPaymentStatusConverter;
 import com.synapse.payment_service.service.convert.PaymentStatusConverter;
+import com.synapse.payment_service.service.externalservice.PaymentProcessor;
 import com.synapse.payment_service.service.persistence.db.PaymentServiceOrderRepository;
 import com.synapse.payment_service.service.persistence.db.PaymentServiceSubscriptionRepository;
 import com.synapse.payment_service_api.dto.request.PaymentRequestDto;
@@ -57,6 +57,8 @@ public class PaymentServiceTest extends TestConfig {
     private PaymentStatusConverter paymentStatusConverter;
     @Mock
     private ObjectMapper objectMapper;
+    @Mock
+    private PaymentProcessor paymentProcessor;
 
     private UUID memberId;
     private String paymentId;
@@ -162,10 +164,8 @@ public class PaymentServiceTest extends TestConfig {
                 .build();
 
         // 실제 DelegatingPaymentStatusConverter 사용 (내부에 PaidPaymentConverter 포함)
-        PaymentStatusConverter realDelegatingConverter = new DelegatingPaymentStatusConverter();
         PaymentService paymentServiceWithRealConverter = new PaymentService(
-                subscriptionRepository, orderRepository, portOneClient,
-                realDelegatingConverter, objectMapper);
+                subscriptionRepository, orderRepository,paymentProcessor, objectMapper);
 
         // PaidPayment 타입으로 모킹 (실제 결제 완료 상태)
         PaidPayment mockPaidPayment = mock(PaidPayment.class);

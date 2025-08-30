@@ -42,12 +42,10 @@ public class SubscriptionBillingWorker {
         try {
             PayWithBillingKeyResponse response = portOneService.payWithBillingKey(order, billingKey, amount);
             successHandler(response, order, subscription);
-            log.info("구독 결제 성공. paymentId={}, orderName={}, subscriptionId={}", order.getPaymentId(),
-                    order.getOrderName(), subscription.getId());
+            log.info("구독 결제 성공. paymentId={}, orderName={}, subscriptionId={}", order.getPaymentId(), order.getOrderName(), subscription.getId());
         } catch (Exception e) {
             failureHandler(order, subscription);
-            log.error("구독 결제 실패. paymentId={}, orderName={}, subscriptionId={}", order.getPaymentId(),
-                    order.getOrderName(), subscription.getId());
+            log.error("구독 결제 실패. paymentId={}, orderName={}, subscriptionId={}", order.getPaymentId(), order.getOrderName(), subscription.getId());
         }
     }
 
