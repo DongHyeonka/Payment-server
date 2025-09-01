@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.synapse.payment_service.TestConfig;
+import com.synapse.payment_service.domain.entity.Member;
 import com.synapse.payment_service.domain.entity.Subscription;
 import com.synapse.payment_service.domain.enums.SubscriptionStatus;
 import com.synapse.payment_service.domain.enums.SubscriptionTier;
@@ -41,7 +42,7 @@ class SubscriptionSchedulerIntegrationTest extends TestConfig {
         // 만료된 CANCELED 구독 생성
         canceledSubscription = Subscription.builder()
                 .id(UUID.randomUUID())
-                .memberId(UUID.randomUUID())
+                .member(Member.builder().memberId(UUID.randomUUID()).build())
                 .tier(SubscriptionTier.PRO)
                 .remainingChatCredits(100)
                 .expiresAt(pastTime)
@@ -52,7 +53,7 @@ class SubscriptionSchedulerIntegrationTest extends TestConfig {
         // 만료된 PAYMENT_FAILED 구독 생성
         paymentFailedSubscription = Subscription.builder()
                 .id(UUID.randomUUID())
-                .memberId(UUID.randomUUID())
+                .member(Member.builder().memberId(UUID.randomUUID()).build())
                 .tier(SubscriptionTier.PRO)
                 .remainingChatCredits(200)
                 .expiresAt(pastTime)
@@ -62,7 +63,7 @@ class SubscriptionSchedulerIntegrationTest extends TestConfig {
         // 만료되지 않은 ACTIVE 구독 생성 (비교 대상)
         activeSubscription = Subscription.builder()
                 .id(UUID.randomUUID())
-                .memberId(UUID.randomUUID())
+                .member(Member.builder().memberId(UUID.randomUUID()).build())
                 .tier(SubscriptionTier.FREE)
                 .remainingChatCredits(100)
                 .expiresAt(futureTime)
@@ -111,7 +112,7 @@ class SubscriptionSchedulerIntegrationTest extends TestConfig {
         // 만료되지 않은 구독만 생성
         Subscription futureSubscription = Subscription.builder()
                 .id(UUID.randomUUID())
-                .memberId(UUID.randomUUID())
+                .member(Member.builder().memberId(UUID.randomUUID()).build())
                 .tier(SubscriptionTier.FREE)
                 .remainingChatCredits(100)
                 .expiresAt(ZonedDateTime.now().plusDays(30))
@@ -137,7 +138,7 @@ class SubscriptionSchedulerIntegrationTest extends TestConfig {
         // 만료된 ACTIVE 구독 생성 (이는 처리 대상이 아님)
         Subscription expiredActiveSubscription = Subscription.builder()
                 .id(UUID.randomUUID())
-                .memberId(UUID.randomUUID())
+                .member(Member.builder().memberId(UUID.randomUUID()).build())
                 .tier(SubscriptionTier.PRO)
                 .remainingChatCredits(100)
                 .expiresAt(ZonedDateTime.now().minusDays(1))

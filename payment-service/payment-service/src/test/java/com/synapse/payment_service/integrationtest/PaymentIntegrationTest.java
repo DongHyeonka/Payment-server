@@ -25,6 +25,7 @@ import org.springframework.test.web.servlet.ResultActions;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.synapse.payment_service.TestConfig;
+import com.synapse.payment_service.domain.entity.Member;
 import com.synapse.payment_service.domain.entity.Order;
 import com.synapse.payment_service.domain.entity.Subscription;
 import com.synapse.payment_service.domain.enums.PaymentStatus;
@@ -67,7 +68,7 @@ public class PaymentIntegrationTest extends TestConfig {
         this.memberId = UUID.randomUUID();
         Subscription subscription = Subscription.builder()
                 .id(UUID.randomUUID())
-                .memberId(memberId)
+                .member(Member.builder().memberId(memberId).build())
                 .tier(SubscriptionTier.FREE)
                 .remainingChatCredits(10)
                 .expiresAt(ZonedDateTime.now().plusDays(30))

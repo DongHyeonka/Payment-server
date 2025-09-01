@@ -26,8 +26,9 @@ public class Subscription extends BaseTimeEntity {
     @Column(name = "subscription_id", nullable = false, unique = true, columnDefinition = "uuid")
     private UUID id;
 
-    @Column(name = "member_id", nullable = false, unique = true, columnDefinition = "uuid")
-    private UUID memberId;
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_id", nullable = false)
+    private Member member;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "tier", nullable = false)
@@ -53,10 +54,10 @@ public class Subscription extends BaseTimeEntity {
     private Integer retryCount = 0;
 
     @Builder
-    public Subscription(UUID id, UUID memberId, SubscriptionTier tier, int remainingChatCredits, ZonedDateTime expiresAt,
+    public Subscription(UUID id, Member member, SubscriptionTier tier, int remainingChatCredits, ZonedDateTime expiresAt,
             SubscriptionStatus status) {
         this.id = id;
-        this.memberId = memberId;
+        this.member = member;
         this.tier = tier;
         this.remainingChatCredits = remainingChatCredits;
         this.expiresAt = expiresAt;

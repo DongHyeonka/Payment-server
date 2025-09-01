@@ -50,7 +50,7 @@ public class PaymentProcessor {
     public void processClientVerification(String paymentId, String iamPortTransactionId, UUID memberId) {
         Order order = paymentServiceOrderRepository.findByOrderId(paymentId);
 
-        if (!order.getSubscription().getMemberId().equals(memberId)) {
+        if (!order.getSubscription().getMember().getMemberId().equals(memberId)) {
             throw new UnauthorizedException(ExceptionCode.UNAUTHORIZED_USER);
         }
 

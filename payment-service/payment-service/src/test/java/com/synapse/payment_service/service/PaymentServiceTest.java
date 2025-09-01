@@ -22,6 +22,7 @@ import org.mockito.Mock;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.synapse.payment_service.TestConfig;
+import com.synapse.payment_service.domain.entity.Member;
 import com.synapse.payment_service.domain.entity.Order;
 import com.synapse.payment_service.domain.entity.Subscription;
 import com.synapse.payment_service.domain.enums.PaymentStatus;
@@ -77,7 +78,7 @@ public class PaymentServiceTest extends TestConfig {
         // given
         PaymentRequestDto request = new PaymentRequestDto("PRO");
         String orderName = "pro_subscription";
-        Subscription mockSubscription = Subscription.builder().id(UUID.randomUUID()).memberId(memberId).tier(SubscriptionTier.FREE).remainingChatCredits(10).expiresAt(ZonedDateTime.now().plusDays(30)).status(SubscriptionStatus.ACTIVE).build();
+        Subscription mockSubscription = Subscription.builder().id(UUID.randomUUID()).member(Member.builder().memberId(memberId).build()).tier(SubscriptionTier.FREE).remainingChatCredits(10).expiresAt(ZonedDateTime.now().plusDays(30)).status(SubscriptionStatus.ACTIVE).build();
 
         given(subscriptionRepository.findByMemberId(memberId)).willReturn(mockSubscription);
         //given(orderRepository.save(any(Order.class))).willAnswer(invocation -> invocation.getArgument(0));
@@ -97,7 +98,7 @@ public class PaymentServiceTest extends TestConfig {
     void verifyAndProcess_success() {
         Subscription mockSubscription = Subscription.builder()
                 .id(UUID.randomUUID())
-                .memberId(memberId)
+                .member(Member.builder().memberId(memberId).build())
                 .tier(SubscriptionTier.FREE)
                 .remainingChatCredits(10)
                 .expiresAt(ZonedDateTime.now().plusDays(30))
@@ -149,7 +150,7 @@ public class PaymentServiceTest extends TestConfig {
         // given
         Subscription mockSubscription = Subscription.builder()
                 .id(UUID.randomUUID())
-                .memberId(memberId)
+                .member(Member.builder().memberId(memberId).build())
                 .tier(SubscriptionTier.FREE)
                 .remainingChatCredits(10)
                 .expiresAt(ZonedDateTime.now().plusDays(30))

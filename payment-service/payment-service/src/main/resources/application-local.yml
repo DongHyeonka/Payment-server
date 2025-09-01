@@ -25,6 +25,64 @@ iamport:
   webhook-secret: ${local-iamport.webhook-secret}
   channel-key: ${local-iamport.channel-key}
 
+eventuatelocal:
+  kafka:
+    bootstrap:
+      servers: localhost:9092
+  zookeeper:
+    connection:
+      string: localhost:2181
+
+eventuate:
+  outbox:
+    id: 2
+  database:
+    schema: eventuate
+  tram:
+    saga:
+      participant:
+        enabled: true
+    messaging:
+      enabled: true
+      producer:
+        enabled: true
+        properties:
+          max.request.size: 10485760
+          auto.create.topics.enable: true
+          acks: all
+          retries: 5
+          enable.idempotence: true
+          max.in.flight.requests.per.connection: 5
+        key-serializer: org.apache.kafka.common.serialization.StringSerializer
+        value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      consumer:
+        properties:
+          max.poll.records: 100
+          max.poll.interval.ms: 300000
+          session.timeout.ms: 30000
+          heartbeat.interval.ms: 10000
+          auto.commit.interval.ms: 100
+          partition.assignment.strategy: org.apache.kafka.clients.consumer.RoundRobinAssignor
+        group-id: paymentService
+        auto-offset-reset: latest
+        enable-auto-commit: true
+      destinations:
+        paymentService:
+          destination: paymentService
+          dlq:
+            destination: paymentService-dlq
+    kafka:
+      message:
+        serializer: io.eventuate.messaging.kafka.basic.consumer.DefaultKafkaMessageSerializer
+        deserializer: io.eventuate.messaging.kafka.basic.consumer.DefaultKafkaMessageDeserializer
+      properties:
+        security.protocol: PLAINTEXT
+    events:
+      subscriber:
+        enabled: true
+        id: paymentService
+        group-id: paymentService
+
 logging:
   level:
     org:

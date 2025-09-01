@@ -26,6 +26,7 @@ public enum ExceptionCode {
     UNSUPPORTED_PAYMENT_STATUS(INTERNAL_SERVER_ERROR, "P007", "지원하지 않는 결제 상태입니다"),
 
     UNAUTHORIZED_USER(UNAUTHORIZED, "P009", "권한이 없습니다"),
+    MEMBER_NOT_FOUND(NOT_FOUND, "P010", "멤버를 찾을 수 없습니다"),
     ;
 
     private final HttpStatus status;

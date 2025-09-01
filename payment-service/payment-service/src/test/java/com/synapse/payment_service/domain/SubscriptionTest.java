@@ -9,6 +9,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import com.synapse.payment_service.domain.entity.Member;
 import com.synapse.payment_service.domain.entity.Subscription;
 import com.synapse.payment_service.domain.enums.SubscriptionStatus;
 import com.synapse.payment_service.domain.enums.SubscriptionTier;
@@ -23,7 +24,7 @@ public class SubscriptionTest {
     void setUp() {
         memberId = UUID.randomUUID();
         subscription = Subscription.builder()
-                .memberId(memberId)
+                .member(Member.builder().memberId(memberId).build())
                 .tier(SubscriptionTier.PRO)
                 .remainingChatCredits(100)
                 .expiresAt(ZonedDateTime.now().plusMonths(1))
@@ -83,7 +84,7 @@ public class SubscriptionTest {
     void newSubscription_shouldHaveZeroRetryCount() {
         // given & when
         Subscription newSubscription = Subscription.builder()
-                .memberId(UUID.randomUUID())
+                .member(Member.builder().memberId(memberId).build())
                 .tier(SubscriptionTier.FREE)
                 .remainingChatCredits(10)
                 .expiresAt(ZonedDateTime.now().plusMonths(1))

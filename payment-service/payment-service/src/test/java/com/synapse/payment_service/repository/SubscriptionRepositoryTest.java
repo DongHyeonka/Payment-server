@@ -15,6 +15,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
 
 import com.synapse.payment_service.TestConfig;
+import com.synapse.payment_service.domain.entity.Member;
 import com.synapse.payment_service.domain.entity.Subscription;
 import com.synapse.payment_service.domain.enums.SubscriptionStatus;
 import com.synapse.payment_service.domain.enums.SubscriptionTier;
@@ -117,7 +118,7 @@ class SubscriptionRepositoryTest extends TestConfig {
         // given
         Subscription canceledSubscription = Subscription.builder()
                 .id(UUID.randomUUID())
-                .memberId(UUID.randomUUID())
+                .member(Member.builder().memberId(UUID.randomUUID()).build())
                 .tier(SubscriptionTier.PRO)
                 .remainingChatCredits(SubscriptionTier.PRO.getMaxRequestCount())
                 .expiresAt(targetDate.atStartOfDay().atZone(ZonedDateTime.now().getZone()))
@@ -127,7 +128,7 @@ class SubscriptionRepositoryTest extends TestConfig {
 
         Subscription paymentFailedSubscription = Subscription.builder()
                 .id(UUID.randomUUID())
-                .memberId(UUID.randomUUID())
+                .member(Member.builder().memberId(UUID.randomUUID()).build())
                 .tier(SubscriptionTier.PRO)
                 .remainingChatCredits(SubscriptionTier.PRO.getMaxRequestCount())
                 .expiresAt(targetDate.atStartOfDay().atZone(ZonedDateTime.now().getZone()))
@@ -173,7 +174,7 @@ class SubscriptionRepositoryTest extends TestConfig {
         // given
         Subscription subscriptionWithoutBillingKey = Subscription.builder()
                 .id(UUID.randomUUID())
-                .memberId(UUID.randomUUID())
+                .member(Member.builder().memberId(UUID.randomUUID()).build())
                 .tier(SubscriptionTier.PRO)
                 .remainingChatCredits(SubscriptionTier.PRO.getMaxRequestCount())
                 .expiresAt(targetDate.atStartOfDay().atZone(ZonedDateTime.now().getZone()))
@@ -392,7 +393,7 @@ class SubscriptionRepositoryTest extends TestConfig {
     private Subscription createActiveSubscription(ZonedDateTime expiresAt) {
         Subscription subscription = Subscription.builder()
                 .id(UUID.randomUUID())
-                .memberId(UUID.randomUUID())
+                .member(Member.builder().memberId(UUID.randomUUID()).build())
                 .tier(SubscriptionTier.PRO)
                 .remainingChatCredits(SubscriptionTier.PRO.getMaxRequestCount())
                 .expiresAt(expiresAt)
@@ -405,7 +406,7 @@ class SubscriptionRepositoryTest extends TestConfig {
     private Subscription createSubscriptionWithStatus(SubscriptionStatus status, ZonedDateTime expiresAt) {
         Subscription subscription = Subscription.builder()
                 .id(UUID.randomUUID())
-                .memberId(UUID.randomUUID())
+                .member(Member.builder().memberId(UUID.randomUUID()).build())
                 .tier(SubscriptionTier.PRO)
                 .remainingChatCredits(SubscriptionTier.PRO.getMaxRequestCount())
                 .expiresAt(expiresAt)

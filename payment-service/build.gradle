@@ -17,21 +17,21 @@ configurations {
     }
 }
 
-repositories {
-	mavenCentral()
-	maven { url 'https://jitpack.io' }
-}
-
 subprojects {
 	apply plugin: 'java'
     apply plugin: 'io.spring.dependency-management'
     apply plugin: 'org.springframework.boot'
 
-	repositories {
-        mavenCentral()
-    }
+	ext {
+		set('springCloudVersion', "2022.0.4")
+		set('eventuateTramVersion', "0.35.0.RELEASE")
+		set('eventuateTramSagasVersion', "0.24.0.RELEASE")
+		set('eventuateCommonVersion', "0.19.0.RELEASE")
+	}
 
 	dependencies {
+		// Eventuate Tram Aggregate Domain Events
+		implementation "io.eventuate.tram.core:eventuate-tram-aggregate-domain-events:${eventuateTramVersion}"
 		// Web
 		implementation 'org.springframework.boot:spring-boot-starter-web'
 		// Lombok
