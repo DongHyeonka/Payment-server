@@ -22,6 +22,7 @@ import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
 
 import com.synapse.payment_service.TestConfig;
+import com.synapse.payment_service.domain.entity.Member;
 import com.synapse.payment_service.domain.entity.Subscription;
 import com.synapse.payment_service.domain.enums.SubscriptionStatus;
 import com.synapse.payment_service.domain.enums.SubscriptionTier;
@@ -49,7 +50,7 @@ class SubscriptionSchedulerTest extends TestConfig {
 
         canceledSubscription = Subscription.builder()
                 .id(UUID.randomUUID())
-                .memberId(UUID.randomUUID())
+                .member(Member.builder().memberId(UUID.randomUUID()).build())
                 .tier(SubscriptionTier.PRO)
                 .remainingChatCredits(SubscriptionTier.PRO.getMaxRequestCount())
                 .expiresAt(pastTime)
@@ -58,7 +59,7 @@ class SubscriptionSchedulerTest extends TestConfig {
 
         paymentFailedSubscription = Subscription.builder()
                 .id(UUID.randomUUID())
-                .memberId(UUID.randomUUID())
+                .member(Member.builder().memberId(UUID.randomUUID()).build())
                 .tier(SubscriptionTier.PRO)
                 .remainingChatCredits(SubscriptionTier.PRO.getMaxRequestCount())
                 .expiresAt(pastTime)
