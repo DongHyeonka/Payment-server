@@ -16,7 +16,7 @@ import io.portone.sdk.server.webhook.WebhookVerifier;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/api/webhooks")
+@RequestMapping("/api/payments")
 @RequiredArgsConstructor
 public class WebHookController {
     private final WebhookVerifier webhookVerifier;
