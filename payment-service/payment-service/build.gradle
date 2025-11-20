@@ -1,3 +1,11 @@
+java {
+	toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
+
 dependencies {
 	implementation project(":payment-service-api")
 	// Simple DSL
@@ -26,8 +34,6 @@ dependencies {
 	testAnnotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.security:spring-security-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-	// Account-Service-API
-	implementation 'com.github.DongHyeonKa:account-service-api:1.0.3'
 }
 
 tasks.named('test') {

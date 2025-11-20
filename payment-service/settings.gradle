@@ -9,14 +9,23 @@ dependencyResolutionManagement {
         mavenCentral()
         maven { url 'https://jitpack.io' }
 
-        maven {
-            name = "GitHubPackages"
-            url = uri("https://maven.pkg.github.com/DongHyeonKa/Account-server")
+        def githubUsername = providers.gradleProperty("GITHUB_USERNAME")
+            .getOrNull()
+        def githubToken = providers.gradleProperty("GITHUB_ACCOUNT_TOKEN")
+            .getOrNull()
 
-            credentials {
-                username = providers.gradleProperty("GITHUB_USERNAME").getOrNull()
-                password = providers.gradleProperty("GITHUB_TOKEN").getOrNull()
+        if (githubUsername && githubToken) {
+            maven {
+                name = "GitHubPackages"
+                url = uri("https://maven.pkg.github.com/DongHyeonka/Account-server")
+
+                credentials {
+                    username = githubUsername
+                    password = githubToken
+                }
             }
+        } else {
+            logger.lifecycle("[rate-limiter] GitHubPackages repository disabled. Set GITHUB_USERNAME and GITHUB_ACCOUNT_TOKEN (or matching environment variables) to enable private dependency resolution.")
         }
     }
 }
